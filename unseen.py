@@ -44,7 +44,6 @@ def unseen(f):
                 fLP[i] = f[i]
 
     fmax = max(find(greater(fLP, 0)))
-    if
 
 n = np.array([[1,2,3], [4,5,6]])
 unseen(n)
