@@ -1,6 +1,8 @@
 import numpy as np
-from utilities.utilities import find
-
+from utilities.utilities import find,greater
+import math
+import math.ceil as ceil
+import math.sqrt as sqrt
 
 
 def unseen(f):
@@ -19,11 +21,30 @@ def unseen(f):
     f = f.T.flatten()
     k = np.matmul(f, np.array(range(1, f.shape[0]+1)).T)
 
-    print("k ", k)
     gridFactor = 1.05
     alpha = 0.5
     xLPmin = 1/(k*max(10, k))
-    # min_i = min()
+    min_i = min(find(greater(f, 0)))
+    if min_i > 0:
+        xLPmin = min_i/k
+    maxLPIters = 1000
+
+
+    x = 0
+    histx = 0
+    fLP = [0]*len(f)
+    for i in range(0, len(f)):
+        if f[i]>0:
+            wind = [ max(0, i-math.ceil(math.sqrt(i))), min(i+math.ceil(math.sqrt(i)), len(f))]
+            if sum(f[wind[0]:wind[1]+1]) < sqrt(i):
+                x = [x, i/k]
+                histx = [histx, f[i]]
+                fLP[i] = 0
+            else:
+                fLP[i] = f[i]
+
+    fmax = max(find(greater(fLP, 0)))
+    if
 
 n = np.array([[1,2,3], [4,5,6]])
 unseen(n)
