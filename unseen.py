@@ -3,6 +3,7 @@ from utilities.utilities import find,greater
 import math
 import math.ceil as ceil
 import math.sqrt as sqrt
+from scipy.stats import poisson
 
 
 def unseen(f):
@@ -23,10 +24,10 @@ def unseen(f):
 
     gridFactor = 1.05
     alpha = 0.5
-    xLPmin = 1/(k*max(10, k))
+    xLPmin = 1.00/float((k*max(10, k)))
     min_i = min(find(greater(f, 0)))
     if min_i > 0:
-        xLPmin = min_i/k
+        xLPmin = float(min_i)/float(k)
     maxLPIters = 1000
 
 
@@ -44,6 +45,75 @@ def unseen(f):
                 fLP[i] = f[i]
 
     fmax = max(find(greater(fLP, 0)))
+    if not fmax:
+        x = x[1:]
+        histx = histx[1:]
+        return
 
-n = np.array([[1,2,3], [4,5,6]])
-unseen(n)
+    LPmass = 1 - np.matmul(np.array(x), np.array(histx).T)
+
+    fLP = fLP[0:fmax+1] + [0]*ceil(sqrt(fmax)) # assuming list append here
+    szLPf = len(fLP)
+
+    xLPmax = float(fmax)/float(k)
+    xLP = xLPmin*(np.array([gridFactor**x for x in range(0, int(ceil(math.log(float(xLPmax)/float(xLPmin))/math.log(gridFactor))+1 ))]))
+    # convert xLP round to 4 as default in matlab
+    xLP = np.array([round(x, 4) for x in xLP])
+    szLPx = len(xLP)
+
+    objf = np.zeros(szLPx+2*szLPf).reshape(szLPx+2*szLPf, 1)
+    objf[szLPx::2] = [1.0/sqrt(fLP+1)]*len(objf[szLPx::2])
+    objf[szLPx+1::2] = [1.0 / sqrt(fLP + 1)] * len(objf[szLPx+1::2])
+
+    A = np.zeros(2*szLPf*(szLPx+2*szLPf)).reshape(2*szLPf, szLPx+2*szLPf)
+    b = np.zeros(2*szLPf).reshape(2*szLPf, 1)
+
+    for i in range(0, szLPf+1):
+        A[2*i][:szLPx] = [poisson.pmf(i+1, k*xLP)]*len(A[2*i][:szLPx]) # [pmf]*times
+        A[2*i+1][:szLPx] = [(-1)*A[2*i][:szLPx]]*len(A[2*i+1][:szLPx])
+        A[2*i][szLPx+2*i] = -1
+        A[2*i+1][szLPx+2*i+1] = -1
+        b[2*i] = fLP[i]
+        b[2*i+1] = 0-fLP[i]
+
+    Aeq = np.zeros(szLPx+2*szLPf).reshape(1, szLPx+2*szLPf)
+    Aeq[:szLPx] = [xLP]*len(Aeq[:szLPx])
+    beq = LPmass
+
+    for i in range(szLPx):
+        A[:,i] /= xLP[i]
+        Aeq[i] /= xLP[i]
+    #97??
+    if exitflag == 0:
+        print 'maximum number of iterations reached--try increasing maxLPIters'
+    elif exitflag < 0:
+        print 'LP1 solution was not found, still solving LP2 anyway...', exitflag
+
+
+
+    #106
+    objf2 = np.zeros(objf.shape)
+    objf2[0:szLPx] = 1
+    A2 = np.stack((A, objf.T))
+    b2 = np.stack((b,fval+alpha))
+    for i in range(szLPx):
+        objf2[i]  /= xLP[i]
+
+    #116 sol2,fval2 = linprog?
+
+
+    if exitflag2 != 1:
+        print "LP2 solution was not found", exitflag2
+
+    sol2[0:szLPx] = np.divide(sol2[0:szLPx], xLP)
+    x = np.hstack((x,xLP))
+    histx = np.hstack((histx,sol2.T))
+    x = x.sort(axis=1)
+    ind = x.argsort(axis=1)
+    histx = histx[ind]
+    ind = np.where(histx > 0)
+    x = x[ind]
+    histx = histx[ind]
+
+    n = np.array([[1,2,3], [4,5,6]])
+    unseen(n)
