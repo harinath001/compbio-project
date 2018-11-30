@@ -1,10 +1,10 @@
 import numpy as np
 from utilities.utilities import find,greater
 import math
-import math.ceil as ceil
-import math.sqrt as sqrt
+import math
 from scipy.stats import poisson
 from scipy.optimize import linprog
+import pdb
 
 def unseen(f):
     # Input: fingerprint f, where f(i) represents number of elements that
@@ -37,7 +37,7 @@ def unseen(f):
     for i in range(0, len(f)):
         if f[i]>0:
             wind = [ max(0, i-math.ceil(math.sqrt(i))), min(i+math.ceil(math.sqrt(i)), len(f))]
-            if sum(f[wind[0]:wind[1]+1]) < sqrt(i):
+            if sum(f[int(wind[0]):int(wind[1])+1]) < math.sqrt(i):
                 x = [x, i/k]
                 histx = [histx, f[i]]
                 fLP[i] = 0
@@ -49,42 +49,45 @@ def unseen(f):
         x = x[1:]
         histx = histx[1:]
         return
-
-    LPmass = 1 - np.matmul(np.array(x), np.array(histx).T)
-
-    fLP = fLP[0:fmax+1] + [0]*ceil(sqrt(fmax)) # assuming list append here
+    LPmass = 1 - np.matmul(np.array([x]), np.array([histx]).T)
+    fLP = fLP[0:fmax+1] + [0]*int(math.ceil(math.sqrt(fmax))) # assuming list append here
     szLPf = len(fLP)
 
     xLPmax = float(fmax)/float(k)
-    xLP = xLPmin*(np.array([gridFactor**x for x in range(0, int(ceil(math.log(float(xLPmax)/float(xLPmin))/math.log(gridFactor))+1 ))]))
+    xLP = xLPmin*(np.array([gridFactor**x for x in range(0, int(math.ceil(math.log(float(xLPmax)/float(xLPmin))/math.log(gridFactor))+1 ))]))
     # convert xLP round to 4 as default in matlab
     xLP = np.array([round(x, 4) for x in xLP])
     szLPx = len(xLP)
 
     objf = np.zeros(szLPx+2*szLPf).reshape(szLPx+2*szLPf, 1)
-    objf[szLPx::2] = [1.0/sqrt(fLP+1)]*len(objf[szLPx::2])
-    objf[szLPx+1::2] = [1.0 / sqrt(fLP + 1)] * len(objf[szLPx+1::2])
+    sqrt_fLP = np.array([1.0/math.sqrt(x+1) for x in fLP])
+    sqrt_fLP = sqrt_fLP.reshape(len(sqrt_fLP), 1)
+
+    # objf[szLPx:] = sqrt_fLP*len(objf[szLPx:]) # converting to
+    objf[szLPx::2] = sqrt_fLP
+    objf[szLPx+1::2] = sqrt_fLP
 
     A = np.zeros(2*szLPf*(szLPx+2*szLPf)).reshape(2*szLPf, szLPx+2*szLPf)
     b = np.zeros(2*szLPf).reshape(2*szLPf, 1)
 
-    for i in range(0, szLPf+1):
-        A[2*i][:szLPx] = [poisson.pmf(i+1, k*xLP)]*len(A[2*i][:szLPx]) # [pmf]*times
-        A[2*i+1][:szLPx] = [(-1)*A[2*i][:szLPx]]*len(A[2*i+1][:szLPx])
+    for i in range(0, szLPf):
+        A[2*i][:szLPx] = poisson.pmf(i+1, k*xLP) # [pmf]*times
+        A[2*i+1][:szLPx] = (-1)*A[2*i][:szLPx]
         A[2*i][szLPx+2*i] = -1
         A[2*i+1][szLPx+2*i+1] = -1
         b[2*i] = fLP[i]
         b[2*i+1] = 0-fLP[i]
 
     Aeq = np.zeros(szLPx+2*szLPf).reshape(1, szLPx+2*szLPf)
-    Aeq[:szLPx] = [xLP]*len(Aeq[:szLPx])
+    Aeq[0][:szLPx] = xLP.reshape(1, len(xLP)) # Aeq is row matrix so replace the first row first szLPx elements to xLP elements
     beq = LPmass
 
     for i in range(szLPx):
         A[:,i] /= xLP[i]
-        Aeq[i] /= xLP[i]
+        Aeq[0][i] /= xLP[i]
 
     options = {"maxiter": maxLPIters, "disp": False}
+    # pdb.set_trace()
     result1 = linprog(objf, A, b, Aeq, beq, options=options)
     exitflag = result1["status"]
     fval = result1["fun"]
@@ -124,5 +127,5 @@ def unseen(f):
     histx = histx[ind]
     return [histx, x]
 
-n = np.array([[1,2,3], [4,5,6]])
+n = np.array([3,0,1,1]).T
 unseen(n)
