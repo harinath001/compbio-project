@@ -4,7 +4,7 @@ import math
 import math.ceil as ceil
 import math.sqrt as sqrt
 from scipy.stats import poisson
-
+from scipy.optimize import linprog
 
 def unseen(f):
     # Input: fingerprint f, where f(i) represents number of elements that
@@ -83,10 +83,14 @@ def unseen(f):
     for i in range(szLPx):
         A[:,i] /= xLP[i]
         Aeq[i] /= xLP[i]
-    #97??
-    if exitflag == 0:
+
+    options = {"maxiter": maxLPIters, "disp": False}
+    result1 = linprog(objf, A, b, Aeq, beq, options=options)
+    exitflag = result1["status"]
+    fval = result1["fun"]
+    if exitflag == 1:
         print 'maximum number of iterations reached--try increasing maxLPIters'
-    elif exitflag < 0:
+    elif exitflag > 1:
         print 'LP1 solution was not found, still solving LP2 anyway...', exitflag
 
 
@@ -97,12 +101,16 @@ def unseen(f):
     A2 = np.stack((A, objf.T))
     b2 = np.stack((b,fval+alpha))
     for i in range(szLPx):
-        objf2[i]  /= xLP[i]
+        objf2[i] /= xLP[i]
 
     #116 sol2,fval2 = linprog?
+    # [sol2, fval2, exitflag2, output] = linprog(objf2, A2, b2, Aeq, beq, zeros(szLPx+2*szLPf,1), Inf*ones(szLPx+2*szLPf,1),[], options);
+    result2 = linprog(objf2, A2, b2, Aeq, beq, options=options)
+    fval2 = result2["fun"]
+    exitflag2 = result2["status"]
+    sol2 = result2["x"]
 
-
-    if exitflag2 != 1:
+    if exitflag2 != 0:
         print "LP2 solution was not found", exitflag2
 
     sol2[0:szLPx] = np.divide(sol2[0:szLPx], xLP)
@@ -114,6 +122,7 @@ def unseen(f):
     ind = np.where(histx > 0)
     x = x[ind]
     histx = histx[ind]
+    return [histx, x]
 
-    n = np.array([[1,2,3], [4,5,6]])
-    unseen(n)
+n = np.array([[1,2,3], [4,5,6]])
+unseen(n)
