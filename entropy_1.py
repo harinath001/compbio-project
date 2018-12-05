@@ -3,7 +3,7 @@ import math
 from scipy.stats import poisson
 from scipy.optimize import linprog
 
-def unseen(f):
+def entropy_est(f):
 	#Calculation of Sample Size
 	f = np.transpose(f).flatten()
 	k = np.array(range(1,len(f)+1))
@@ -34,9 +34,11 @@ def unseen(f):
 			else:
 				fLP[i] = f[i]
 
-	fmax = [i for i in range(len(fLP)) if fLP[i] > 0]
+	fmax = [i for i in range(len(f)) if f[i] > 0]
 	if len(fmax) == 0:
-		return x,histx
+		#return x,histx
+		ent = (-1)*(np.dot(histx,[y*math.log(y) for y in x])) + float(np.sum(histx))/(2.0*k)
+		return ent
 	else:
 		fmax = max(fmax)+1
 
@@ -78,12 +80,12 @@ def unseen(f):
 		Aeq[0][i] = Aeq[0][i]/xLP[i]
 		A[:,i] = A[:,i]/xLP[i]
 
-	# print objf.shape
-	# print A.shape
-	# print b.shape
-	# print Aeq.shape
-	# print beq.shape
-	# print szLPx,szLPf
+	print objf.shape
+	print A.shape
+	print b.shape
+	print Aeq.shape
+	print beq.shape
+	print szLPx,szLPf
 	options = {"maxiter": maxLPIters, "disp": False}
 	
 	A = np.array([[round(temp,4) for temp in y] for y in A])
@@ -96,24 +98,31 @@ def unseen(f):
 	elif exitflag > 1:
 		print 'LP1 solution was not found, still solving LP2 anyway...', exitflag
 	
-	print fval
+	if min_i < 1:
+		objf2 = np.zeros((szLPx + 2*szLPf,1))
+		objf2[:szLPx] = 1
+		A2 = np.vstack((A,np.transpose(objf)))
+		b2 = np.vstack((b,np.array(fval+alpha)))
 
-	objf2 = np.zeros((szLPx + 2*szLPf,1))
-	objf2[:szLPx] = 1
-	A2 = np.vstack((A,np.transpose(objf)))
-	b2 = np.vstack((b,np.array(fval+alpha)))
+		for i in range(szLPx):
+			objf2[i] = objf2[i]/xLP[i]
 
-	for i in range(szLPx):
-		objf2[i] = objf2[i]/xLP[i]
+		result2 = linprog(np.squeeze(objf2), A2, b2, Aeq, beq, options=options)
 
-	result2 = linprog(np.squeeze(objf2), A2, b2, Aeq, beq, options=options)
+		exitflag = result2["status"]
+		if exitflag > 1:
+			print 'LP2 solution was not found',exitflag
+		sol2 = result2['x']
+	else:
+		sol2 = result1['x']
 
-	exitflag = result2["status"]
-	if exitflag > 1:
-		print 'LP2 solution was not found', exitflag
-
-	sol2 = result2['x']
 	sol2[0:szLPx] = np.divide(sol2[0:szLPx],xLP)
+
+	fmax1 = [i for i in range(len(x)) if x[i] > 0]
+	if len(fmax1) == 0:
+		ent = (-1)*(np.dot(sol2[:szLPx],[z*math.log(z) for z in xLP]))
+	else:
+		ent = (-1)*np.matmul(histx * (np.where(x>0)),((x*np.where(x>0)) * (np.array([math.log(y) for y in np.where(x>0)]))).T ) + ( sum(histx[np.where(x>0)]) ) / (2*k - np.matmul(sol2[1:szLPx].T, (xLP*np.array([math.log(y) for y in x])).T  ) )
 
 	x = np.concatenate((x,xLP))
 	histx = np.concatenate((histx,sol2))
@@ -125,9 +134,11 @@ def unseen(f):
 	index = np.where(histx > 0)
 	x = x[index]
 	histx = histx[index]
-	return histx,x
 
-histogram,prob = unseen([[7],[0],[1]])
-print histogram,prob
+	print histx
+	print x
+	return ent
+	#return histx,x
 
-print np.dot(histogram,prob)
+ent = entropy_est([[7],[0],[1]])
+print ent
