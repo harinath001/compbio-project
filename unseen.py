@@ -88,7 +88,7 @@ def unseen(f):
 
     options = {"maxiter": maxLPIters, "disp": False}
     # pdb.set_trace()
-    result1 = linprog(objf, A, b, Aeq, beq, options=options)
+    result1 = linprog(np.squeeze(objf), A, b, Aeq, beq, options=options)
     exitflag = result1["status"]
     fval = result1["fun"]
     if exitflag == 1:
@@ -101,14 +101,14 @@ def unseen(f):
     #106
     objf2 = np.zeros(objf.shape)
     objf2[0:szLPx] = 1
-    A2 = np.stack((A, objf.T))
-    b2 = np.stack((b,fval+alpha))
+    A2 = np.vstack((A, objf.T))
+    b2 = np.vstack((b,fval+alpha))
     for i in range(szLPx):
         objf2[i] /= xLP[i]
 
     #116 sol2,fval2 = linprog?
     # [sol2, fval2, exitflag2, output] = linprog(objf2, A2, b2, Aeq, beq, zeros(szLPx+2*szLPf,1), Inf*ones(szLPx+2*szLPf,1),[], options);
-    result2 = linprog(objf2, A2, b2, Aeq, beq, options=options)
+    result2 = linprog(np.squeeze(objf2), A2, b2, Aeq, beq, options=options)
     fval2 = result2["fun"]
     exitflag2 = result2["status"]
     sol2 = result2["x"]
@@ -119,13 +119,15 @@ def unseen(f):
     sol2[0:szLPx] = np.divide(sol2[0:szLPx], xLP)
     x = np.hstack((x,xLP))
     histx = np.hstack((histx,sol2.T))
-    x = x.sort(axis=1)
-    ind = x.argsort(axis=1)
+    x.sort()
+    ind = x.argsort()
     histx = histx[ind]
     ind = np.where(histx > 0)
     x = x[ind]
     histx = histx[ind]
     return [histx, x]
 
-n = np.array([3,0,1,1]).T
-unseen(n)
+n = np.array([[8], [1]])
+temp = unseen(n)
+print(temp)
+print(sum(temp[0]*temp[1]))
