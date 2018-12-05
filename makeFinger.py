@@ -15,5 +15,5 @@ def makeFinger(v):
     return f
 
 
-a = [1,2,3,4,5]
+a = [3,14,20,17,13,7,6,9,8,18]
 print(makeFinger(a))
