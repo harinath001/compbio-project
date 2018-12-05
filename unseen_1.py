@@ -35,7 +35,6 @@ def unseen(f):
 				fLP[i] = f[i]
 
 	fmax = [i for i in range(len(f)) if f[i] > 0]
-	print fmax
 	if len(fmax) == 0:
 		return x,histx
 	else:
@@ -78,7 +77,6 @@ def unseen(f):
 	for i in range(szLPx):
 		Aeq[0][i] = Aeq[0][i]/xLP[i]
 		A[:,i] = A[:,i]/xLP[i]
-		pass
 
 	print objf.shape
 	print A.shape
@@ -87,6 +85,8 @@ def unseen(f):
 	print beq.shape
 	print szLPx,szLPf
 	options = {"maxiter": maxLPIters, "disp": False}
+	
+	A = np.array([[round(temp,4) for temp in y] for y in A])
 	result1 = linprog(np.squeeze(objf), A, b, Aeq, beq, options=options)
 
 	exitflag = result1["status"]
@@ -95,10 +95,40 @@ def unseen(f):
 		print 'maximum number of iterations reached--try increasing maxLPIters'
 	elif exitflag > 1:
 		print 'LP1 solution was not found, still solving LP2 anyway...', exitflag
-	print result1['x']
-	print xLP
-
+	
 	print result1
 
+	objf2 = np.zeros((szLPx + 2*szLPf,1))
+	objf2[:szLPx] = 1
+	A2 = np.vstack((A,np.transpose(objf)))
+	b2 = np.vstack((b,np.array(fval+alpha)))
 
-unseen([[8],[1]])
+	for i in range(szLPx):
+		objf2[i] = objf2[i]/xLP[i]
+
+	result2 = linprog(np.squeeze(objf2), A2, b2, Aeq, beq, options=options)
+
+	exitflag = result2["status"]
+	if exitflag > 1:
+		print 'LP2 solution was not found'
+		return exitflag
+
+	sol2 = result2['x']
+	sol2[0:szLPx] = np.divide(sol2[0:szLPx],xLP)
+
+	x = np.concatenate((x,xLP))
+	histx = np.concatenate((histx,sol2))
+
+	index = np.argsort(x)
+	x = np.sort(x)
+	histx = histx[index]
+
+	index = np.where(histx > 0)
+	x = x[index]
+	histx = histx[index]
+	return histx,x
+
+histogram,prob = unseen([[371],[183],[63],[16],[2]])
+print histogram,prob
+
+print np.dot(histogram,prob)
