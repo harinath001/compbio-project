@@ -122,7 +122,13 @@ def entropy_est(f):
 	if len(fmax1) == 0:
 		ent = (-1)*(np.dot(sol2[:szLPx],[z*math.log(z) for z in xLP]))
 	else:
-		ent = (-1)*np.matmul(histx * (np.where(x>0)),((x*np.where(x>0)) * (np.array([math.log(y) for y in np.where(x>0)]))).T ) + ( sum(histx[np.where(x>0)]) ) / (2*k - np.matmul(sol2[1:szLPx].T, (xLP*np.array([math.log(y) for y in x])).T  ) )
+		histx = np.array(histx)
+		x = np.array(x)
+		x1 = x[fmax1]
+		ent = (-1)*np.dot(histx[fmax1],[z*math.log(z) for z in x1])
+		ent += np.sum(histx[fmax1])/(2.0*k)
+		ent -= np.dot(sol2[:szLPx],[z*math.log(z) for z in xLP])
+		#ent = (-1)*np.matmul(histx * (np.where(x>0)),((x*np.where(x>0)) * (np.array([math.log(y) for y in np.where(x>0)]))).T ) + ( sum(histx[np.where(x>0)]) ) / (2*k - np.matmul(sol2[1:szLPx].T, (xLP*np.array([math.log(y) for y in x])).T  ) )
 
 	x = np.concatenate((x,xLP))
 	histx = np.concatenate((histx,sol2))
