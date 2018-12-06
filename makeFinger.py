@@ -13,7 +13,3 @@ def makeFinger(v):
     f = np.histogram(h1, range=(0, max(h1)), bins=max(h1)+1)[0]
     f = f[1:].reshape(len(f)-1, 1)
     return f
-
-
-a = [3,14,20,17,13,7,6,9,8,18]
-print(makeFinger(a))

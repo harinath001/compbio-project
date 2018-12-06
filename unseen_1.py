@@ -96,7 +96,7 @@ def unseen(f):
 	elif exitflag > 1:
 		print 'LP1 solution was not found, still solving LP2 anyway...', exitflag
 	
-	print fval
+	print result1['message']
 
 	objf2 = np.zeros((szLPx + 2*szLPf,1))
 	objf2[:szLPx] = 1
@@ -112,7 +112,10 @@ def unseen(f):
 	if exitflag > 1:
 		print 'LP2 solution was not found', exitflag
 
+	print result2['message']
+
 	sol2 = result2['x']
+	print sol2
 	sol2[0:szLPx] = np.divide(sol2[0:szLPx],xLP)
 
 	x = np.concatenate((x,xLP))
@@ -126,8 +129,3 @@ def unseen(f):
 	x = x[index]
 	histx = histx[index]
 	return histx,x
-
-histogram,prob = unseen([[7],[0],[1]])
-print histogram,prob
-
-print np.dot(histogram,prob)

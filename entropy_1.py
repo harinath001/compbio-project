@@ -36,7 +36,6 @@ def entropy_est(f):
 
 	fmax = [i for i in range(len(f)) if f[i] > 0]
 	if len(fmax) == 0:
-		#return x,histx
 		ent = (-1)*(np.dot(histx,[y*math.log(y) for y in x])) + float(np.sum(histx))/(2.0*k)
 		return ent
 	else:
@@ -80,12 +79,12 @@ def entropy_est(f):
 		Aeq[0][i] = Aeq[0][i]/xLP[i]
 		A[:,i] = A[:,i]/xLP[i]
 
-	print objf.shape
-	print A.shape
-	print b.shape
-	print Aeq.shape
-	print beq.shape
-	print szLPx,szLPf
+	# print objf.shape
+	# print A.shape
+	# print b.shape
+	# print Aeq.shape
+	# print beq.shape
+	# print szLPx,szLPf
 	options = {"maxiter": maxLPIters, "disp": False}
 	
 	A = np.array([[round(temp,4) for temp in y] for y in A])
@@ -129,22 +128,5 @@ def entropy_est(f):
 		ent += np.sum(histx[fmax1])/(2.0*k)
 		ent -= np.dot(sol2[:szLPx],[z*math.log(z) for z in xLP])
 		#ent = (-1)*np.matmul(histx * (np.where(x>0)),((x*np.where(x>0)) * (np.array([math.log(y) for y in np.where(x>0)]))).T ) + ( sum(histx[np.where(x>0)]) ) / (2*k - np.matmul(sol2[1:szLPx].T, (xLP*np.array([math.log(y) for y in x])).T  ) )
-
-	x = np.concatenate((x,xLP))
-	histx = np.concatenate((histx,sol2))
-
-	index = np.argsort(x)
-	x = np.sort(x)
-	histx = histx[index]
-
-	index = np.where(histx > 0)
-	x = x[index]
-	histx = histx[index]
-
-	print histx
-	print x
+	
 	return ent
-	#return histx,x
-
-ent = entropy_est([[7],[0],[1]])
-print ent
