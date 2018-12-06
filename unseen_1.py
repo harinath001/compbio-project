@@ -92,11 +92,11 @@ def unseen(f):
 	exitflag = result1["status"]
 	fval = result1["fun"]
 	if exitflag == 1:
-		print 'maximum number of iterations reached--try increasing maxLPIters'
+		print('maximum number of iterations reached--try increasing maxLPIters')
 	elif exitflag > 1:
-		print 'LP1 solution was not found, still solving LP2 anyway...', exitflag
+		print('LP1 solution was not found, still solving LP2 anyway...', exitflag)
 	
-	print result1['message']
+	print(result1['message'])
 
 	objf2 = np.zeros((szLPx + 2*szLPf,1))
 	objf2[:szLPx] = 1
@@ -110,12 +110,12 @@ def unseen(f):
 
 	exitflag = result2["status"]
 	if exitflag > 1:
-		print 'LP2 solution was not found', exitflag
+		print('LP2 solution was not found', exitflag)
 
-	print result2['message']
+	print(result2['message'])
 
 	sol2 = result2['x']
-	print sol2
+	print(sol2)
 	sol2[0:szLPx] = np.divide(sol2[0:szLPx],xLP)
 
 	x = np.concatenate((x,xLP))

@@ -13,19 +13,19 @@ print "Sample:"
 print sample
 
 f = makeFinger(sample)
-print "Fingerprint:"
+print("Fingerprint:")
 print f
 
 histx,x = unseen(f)
-print "H(x) and x:"
+print("H(x) and x:")
 print histx,x
 
-print "True Entropy", math.log(n)
+print("True Entropy", math.log(n))
 
 temp = np.array([float(i) for i in range(1,len(f)+1)])
 temp /= k
-print "Emperical Entropy", -np.dot(f.flatten(),[z*math.log(z) for z in temp])
+print("Emperical Entropy", -np.dot(f.flatten(),[z*math.log(z) for z in temp]))
 
-print "Entropy of Recovered Histogram", -np.dot(histx,[z*math.log(z) for z in x])
+print("Entropy of Recovered Histogram", -np.dot(histx,[z*math.log(z) for z in x]))
 
-print "Entropy using Code", entropy_est(f)
+print("Entropy using Code", entropy_est(f))

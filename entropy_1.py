@@ -93,9 +93,9 @@ def entropy_est(f):
 	exitflag = result1["status"]
 	fval = result1["fun"]
 	if exitflag == 1:
-		print 'maximum number of iterations reached--try increasing maxLPIters'
+		print('maximum number of iterations reached--try increasing maxLPIters')
 	elif exitflag > 1:
-		print 'LP1 solution was not found, still solving LP2 anyway...', exitflag
+		print('LP1 solution was not found, still solving LP2 anyway...', exitflag)
 	
 	if min_i < 1:
 		objf2 = np.zeros((szLPx + 2*szLPf,1))
@@ -110,7 +110,7 @@ def entropy_est(f):
 
 		exitflag = result2["status"]
 		if exitflag > 1:
-			print 'LP2 solution was not found',exitflag
+			print('LP2 solution was not found',exitflag)
 		sol2 = result2['x']
 	else:
 		sol2 = result1['x']
