@@ -6,19 +6,19 @@ from entropy_1 import entropy_est
 #Generate a sample of size 10,000 from the uniform distribution of support 100,000
 n=100000
 k=10000
-n=1000
-k=250
+
 sample =  np.random.random_integers(low=1,high=n,size=k)
-print "Sample:"
-print sample
+# print "Sample:"
+# print sample
 
 f = makeFinger(sample)
 print "Fingerprint:"
 print f
 
 histx,x = unseen(f)
-print "H(x) and x:"
-print histx,x
+print "The probability and Histogram of the probability"
+for i in range(len(x)):
+	print x[i], histx[i]
 
 print "True Entropy", math.log(n)
 
