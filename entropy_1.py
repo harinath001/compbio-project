@@ -79,16 +79,14 @@ def entropy_est(f):
 		Aeq[0][i] = Aeq[0][i]/xLP[i]
 		A[:,i] = A[:,i]/xLP[i]
 
-	# print objf.shape
-	# print A.shape
-	# print b.shape
-	# print Aeq.shape
-	# print beq.shape
-	# print szLPx,szLPf
 	options = {"maxiter": maxLPIters, "disp": False}
 	
-	A = np.array([[round(temp,4) for temp in y] for y in A])
-	result1 = linprog(np.squeeze(objf), A, b, Aeq, beq, options=options)
+	A = np.around(A,4)
+	b = np.around(b,4)
+	Aeq = np.around(Aeq,4)
+	objf = np.around(objf,4)
+
+	result1 = linprog(np.squeeze(objf), A, b, Aeq, beq, method="interior-point", options=options)
 
 	exitflag = result1["status"]
 	fval = result1["fun"]
@@ -105,8 +103,13 @@ def entropy_est(f):
 
 		for i in range(szLPx):
 			objf2[i] = objf2[i]/xLP[i]
-
-		result2 = linprog(np.squeeze(objf2), A2, b2, Aeq, beq, options=options)
+		
+		A2 = np.around(A2,4)
+		b2 = np.around(b2,4)
+		Aeq = np.around(Aeq,4)
+		objf2 = np.around(objf2,4)
+		
+		result2 = linprog(np.squeeze(objf2), A2, b2, Aeq, beq,method="interior-point", options=options)
 
 		exitflag = result2["status"]
 		if exitflag > 1:
@@ -116,6 +119,7 @@ def entropy_est(f):
 		sol2 = result1['x']
 
 	sol2[0:szLPx] = np.divide(sol2[0:szLPx],xLP)
+	sol2 = np.around(sol2,4)
 
 	fmax1 = [i for i in range(len(x)) if x[i] > 0]
 	if len(fmax1) == 0:
